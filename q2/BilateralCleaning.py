@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 
 def clean_Gaussian_noise_bilateral(im, radius, stdSpatial, stdIntensity):
 	# Your code goes here
+    return 5
 
 # change this to the name of the image you'll try to clean up
 original_image_path = 'path.jpg'
