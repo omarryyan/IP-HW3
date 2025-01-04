@@ -76,14 +76,14 @@ def clean_Gaussian_noise_bilateral(im, radius, stdSpatial, stdIntensity):
 # Example Usage
 original_image_path = 'balls.jpg'  # Replace with your actual file name
 image = cv2.imread(original_image_path, cv2.IMREAD_GRAYSCALE)
-
+print(image.shape)
 # Check if the image loaded successfully
 if image is None:
     raise FileNotFoundError("Image file not found. Ensure it is in the same folder as this script.")
 
 # Parameters for the bilateral filter
 radius = 5
-stdSpatial =  100
+stdSpatial =  4
 stdIntensity = 20
 
 # Apply the bilateral filter
