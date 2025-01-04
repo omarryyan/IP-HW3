@@ -185,9 +185,9 @@ print(f"\nBest matching filter: {best_match[0]} with a difference of {best_match
 
 '''
 need to do : 
- image 4 
-    image 5
-    image 7 
-    image 8 
-    image 9 
+image 4 
+image 5
+image 7 
+image 8 
+image 9 
 '''

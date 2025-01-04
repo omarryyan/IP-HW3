@@ -2,22 +2,9 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 
-'''''
-NoisyGrayImage sol : 
-radius = 10
-stdSpatial = 10.0
-stdIntensity =150
-taj sol : 
- radius = 5 
-stdSpatial =  100
-stdIntensity = 20
- ## not sure that this is optimal tho 
-  # same paramters looks good for  balls . jpg what do u think 
-'''''
 def gaussian(x, sigma):
     """Gaussian function."""
     return np.exp(-0.5 * (x / sigma) ** 2)
-
 
 def clean_Gaussian_noise_bilateral(im, radius, stdSpatial, stdIntensity):
     """
@@ -57,9 +44,6 @@ def clean_Gaussian_noise_bilateral(im, radius, stdSpatial, stdIntensity):
     # Compute intensity Gaussian (gi) for the entire image
     gi = gaussian(intensity_diff, stdIntensity)
 
-    # # Normalize gi to avoid any scaling issue
-    # gi = gi / gi.sum(axis=(2, 3), keepdims=True)
-
     # Apply the spatial and intensity Gaussian together
     weights = gs * gi
 
@@ -72,33 +56,48 @@ def clean_Gaussian_noise_bilateral(im, radius, stdSpatial, stdIntensity):
     # Convert the result back to uint8
     return np.clip(filtered_im, 0, 255).astype(np.uint8)
 
-
 # Example Usage
 original_image_path = 'balls.jpg'  # Replace with your actual file name
-image = cv2.imread(original_image_path, cv2.IMREAD_GRAYSCALE)
-print(image.shape)
-# Check if the image loaded successfully
-if image is None:
+color_image = cv2.imread(original_image_path)  # Load color image
+
+if color_image is None:
     raise FileNotFoundError("Image file not found. Ensure it is in the same folder as this script.")
+
+# Convert the color image to grayscale
+gray_image = cv2.cvtColor(color_image, cv2.COLOR_BGR2GRAY)
 
 # Parameters for the bilateral filter
 radius = 5
-stdSpatial =  4
+stdSpatial = 4
 stdIntensity = 20
 
-# Apply the bilateral filter
-filtered_image = clean_Gaussian_noise_bilateral(image, radius, stdSpatial, stdIntensity)
+# Apply the bilateral filter to the grayscale image
+filtered_gray_image = clean_Gaussian_noise_bilateral(gray_image, radius, stdSpatial, stdIntensity)
 
-# Visualize the original and filtered images
-plt.figure(figsize=(10, 5))
-plt.subplot(121)
-plt.title("Original Image")
-plt.imshow(image, cmap='gray')
+# Convert original color image to YCrCb color space
+ycrcb_image = cv2.cvtColor(color_image, cv2.COLOR_BGR2YCrCb)
+
+# Replace the Y (luma) channel with the filtered grayscale image
+ycrcb_image[:, :, 0] = filtered_gray_image
+
+# Convert back to BGR color space
+restored_color_image = cv2.cvtColor(ycrcb_image, cv2.COLOR_YCrCb2BGR)
+
+# Visualize the original, filtered grayscale, and restored color images
+plt.figure(figsize=(15, 10))
+plt.subplot(131)
+plt.title("Original Color Image")
+plt.imshow(cv2.cvtColor(color_image, cv2.COLOR_BGR2RGB))
 plt.axis("off")
 
-plt.subplot(122)
-plt.title("Filtered Image")
-plt.imshow(filtered_image, cmap='gray')
+plt.subplot(132)
+plt.title("Filtered Grayscale Image")
+plt.imshow(filtered_gray_image, cmap='gray')
+plt.axis("off")
+
+plt.subplot(133)
+plt.title("Restored Color Image")
+plt.imshow(cv2.cvtColor(restored_color_image, cv2.COLOR_BGR2RGB))
 plt.axis("off")
 
 plt.show()
