@@ -2,7 +2,18 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 
-
+'''''
+NoisyGrayImage sol : 
+radius = 10
+stdSpatial = 10.0
+stdIntensity =150
+taj sol : 
+ radius = 5 
+stdSpatial =  100
+stdIntensity = 20
+ ## not sure that this is optimal tho 
+  # same paramters looks good for  balls . jpg what do u think 
+'''''
 def gaussian(x, sigma):
     """Gaussian function."""
     return np.exp(-0.5 * (x / sigma) ** 2)
@@ -46,8 +57,8 @@ def clean_Gaussian_noise_bilateral(im, radius, stdSpatial, stdIntensity):
     # Compute intensity Gaussian (gi) for the entire image
     gi = gaussian(intensity_diff, stdIntensity)
 
-    # Normalize gi to avoid any scaling issue
-    gi = gi / gi.sum(axis=(2, 3), keepdims=True)
+    # # Normalize gi to avoid any scaling issue
+    # gi = gi / gi.sum(axis=(2, 3), keepdims=True)
 
     # Apply the spatial and intensity Gaussian together
     weights = gs * gi
@@ -63,7 +74,7 @@ def clean_Gaussian_noise_bilateral(im, radius, stdSpatial, stdIntensity):
 
 
 # Example Usage
-original_image_path = 'NoisyGrayImage.png'  # Replace with your actual file name
+original_image_path = 'balls.jpg'  # Replace with your actual file name
 image = cv2.imread(original_image_path, cv2.IMREAD_GRAYSCALE)
 
 # Check if the image loaded successfully
@@ -71,9 +82,9 @@ if image is None:
     raise FileNotFoundError("Image file not found. Ensure it is in the same folder as this script.")
 
 # Parameters for the bilateral filter
-radius = 10
-stdSpatial = 10.0
-stdIntensity =150
+radius = 5
+stdSpatial =  100
+stdIntensity = 20
 
 # Apply the bilateral filter
 filtered_image = clean_Gaussian_noise_bilateral(image, radius, stdSpatial, stdIntensity)
