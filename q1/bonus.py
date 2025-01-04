@@ -127,7 +127,7 @@ images.append(min_max_bilateral)
 
 # 9. Adaptive Thresholding
 adaptive_thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-                                         cv2.THRESH_BINARY, 11, 2)
+                                        cv2.THRESH_BINARY, 11, 2)
 min_max_adaptive_thresh = apply_min_max_filter(adaptive_thresh)  # Apply Min-Max normalization to Adaptive thresholding
 comparisons.append(("Min-Max Adaptive Thresholding", compare_images(min_max_adaptive_thresh, target_image)))
 titles.append("Min-Max Adaptive Thresholding")
@@ -153,6 +153,22 @@ min_max_convolution = apply_min_max_filter(convolution_result)  # Apply Min-Max 
 comparisons.append(("Min-Max Convolution", compare_images(min_max_convolution, target_image_rgb)))
 titles.append("Min-Max Convolution")
 images.append(min_max_convolution)
+
+def apply_row_mean_normalization(image):
+    rows, cols, ch = image.shape
+    for row in range(rows):
+        # Calculate the mean of the row
+        row_mean = np.mean(image[row])
+        # Replace every pixel in the row with the row's mean value
+        image[row] = row_mean
+    return image
+
+# Apply row-wise mean normalization to the RGB image (a copy to keep original intact)
+normalized_image_rgb = apply_row_mean_normalization(image_rgb.copy())
+
+# Display original image and normalized image
+titles.append("Row-wise Mean Normalized Image")
+images.append(normalized_image_rgb)
 
 # Display all the results
 display_images(titles, images)
