@@ -181,3 +181,13 @@ for filter_name, diff in comparisons:
 # Suggest the best match
 best_match = min(comparisons, key=lambda x: x[1])
 print(f"\nBest matching filter: {best_match[0]} with a difference of {best_match[1]}")
+
+
+'''
+need to do : 
+ image 4 
+    image 5
+    image 7 
+    image 8 
+    image 9 
+'''
