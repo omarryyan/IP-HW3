@@ -71,9 +71,9 @@ if image is None:
     raise FileNotFoundError("Image file not found. Ensure it is in the same folder as this script.")
 
 # Parameters for the bilateral filter
-radius = 5
+radius = 10
 stdSpatial = 10.0
-stdIntensity = 100
+stdIntensity =150
 
 # Apply the bilateral filter
 filtered_image = clean_Gaussian_noise_bilateral(image, radius, stdSpatial, stdIntensity)
