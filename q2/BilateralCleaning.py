@@ -1,6 +1,24 @@
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
+'''''
+balls sol : 
+radius = 5 
+stdSpatial =  100
+stdIntensity = 20
+
+NoisyGrayImage sol : 
+radius = 10
+stdSpatial = 10.0
+stdIntensity =150
+
+taj sol : 
+radius = 5 
+stdSpatial =  100
+stdIntensity = 20
+ ## not sure that this is optimal tho 
+  # same paramters looks good for  balls . jpg what do u think 
+'''''
 
 def gaussian(x, sigma):
     """Gaussian function."""
@@ -29,75 +47,64 @@ def clean_Gaussian_noise_bilateral(im, radius, stdSpatial, stdIntensity):
     x, y = np.meshgrid(np.arange(-radius, radius + 1), np.arange(-radius, radius + 1))
     gs = gaussian(np.sqrt(x**2 + y**2), stdSpatial)
 
-    # Reshape the spatial Gaussian into a 2D array (window_size x window_size)
-    gs = gs / gs.sum()  # Normalize spatial Gaussian (this ensures no change in image brightness)
+    # Normalize the spatial Gaussian kernel
+    gs = gs / gs.sum()
 
     # Create a shifted view of the image for easy access to neighborhoods
     windows = np.lib.stride_tricks.sliding_window_view(padded_im, (window_size, window_size))
-
-    # Reshape windows for broadcasting
     windows = windows.reshape((rows, cols, window_size, window_size))
 
-    # Calculate the intensity differences for each pixel in the window
+    # Calculate intensity differences
     intensity_diff = windows - im[:, :, np.newaxis, np.newaxis]
 
-    # Compute intensity Gaussian (gi) for the entire image
+    # Compute intensity Gaussian
     gi = gaussian(intensity_diff, stdIntensity)
 
-    # Apply the spatial and intensity Gaussian together
+    # Combine spatial and intensity weights
     weights = gs * gi
 
-    # Normalize the combined weight matrix
+    # Normalize the weights
     weights = weights / weights.sum(axis=(2, 3), keepdims=True)
 
-    # Multiply the window values with the weights and sum them
+    # Apply weights to the image and sum up
     filtered_im = np.sum(weights * windows, axis=(2, 3))
 
-    # Convert the result back to uint8
     return np.clip(filtered_im, 0, 255).astype(np.uint8)
 
-# Example Usage
-original_image_path = 'balls.jpg'  # Replace with your actual file name
-color_image = cv2.imread(original_image_path)  # Load color image
 
-if color_image is None:
-    raise FileNotFoundError("Image file not found. Ensure it is in the same folder as this script.")
+# Process multiple images
+image_paths = ['balls.jpg', 'NoisyGrayImage.png', 'taj.jpg']
 
-# Convert the color image to grayscale
-gray_image = cv2.cvtColor(color_image, cv2.COLOR_BGR2GRAY)
+for image_path in image_paths:
+    gray_image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)  # Load grayscale image directly
 
-# Parameters for the bilateral filter
-radius = 5
-stdSpatial = 4
-stdIntensity = 20
+    if gray_image is None:
+        print(f"Image file not found: {image_path}. Skipping.")
+        continue
 
-# Apply the bilateral filter to the grayscale image
-filtered_gray_image = clean_Gaussian_noise_bilateral(gray_image, radius, stdSpatial, stdIntensity)
+    # Define parameters based on the image
+    if image_path == 'NoisyGrayImage.png':
+        radius = 10
+        stdSpatial = 10.0
+        stdIntensity = 150
+    else:  # Parameters for 'balls.jpg' and 'taj.jpg'
+        radius = 5
+        stdSpatial = 100
+        stdIntensity = 20
 
-# Convert original color image to YCrCb color space
-ycrcb_image = cv2.cvtColor(color_image, cv2.COLOR_BGR2YCrCb)
+    # Apply the bilateral filter
+    filtered_gray_image = clean_Gaussian_noise_bilateral(gray_image, radius, stdSpatial, stdIntensity)
 
-# Replace the Y (luma) channel with the filtered grayscale image
-ycrcb_image[:, :, 0] = filtered_gray_image
+    # Display the original and filtered images
+    plt.figure(figsize=(10, 5))
+    plt.subplot(121)
+    plt.title(f"Original Grayscale Image ({image_path})")
+    plt.imshow(gray_image, cmap='gray')
+    plt.axis("off")
 
-# Convert back to BGR color space
-restored_color_image = cv2.cvtColor(ycrcb_image, cv2.COLOR_YCrCb2BGR)
+    plt.subplot(122)
+    plt.title("Filtered Grayscale Image")
+    plt.imshow(filtered_gray_image, cmap='gray')
+    plt.axis("off")
 
-# Visualize the original, filtered grayscale, and restored color images
-plt.figure(figsize=(15, 10))
-plt.subplot(131)
-plt.title("Original Color Image")
-plt.imshow(cv2.cvtColor(color_image, cv2.COLOR_BGR2RGB))
-plt.axis("off")
-
-plt.subplot(132)
-plt.title("Filtered Grayscale Image")
-plt.imshow(filtered_gray_image, cmap='gray')
-plt.axis("off")
-
-plt.subplot(133)
-plt.title("Restored Color Image")
-plt.imshow(cv2.cvtColor(restored_color_image, cv2.COLOR_BGR2RGB))
-plt.axis("off")
-
-plt.show()
+    plt.show()
