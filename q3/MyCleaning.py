@@ -1,5 +1,5 @@
-# Student_Name1, Student_ID1
-# Student_Name2, Student_ID2
+# Omar_Ryyan, 322283755
+# Abdulrahman_Assi, 212371421
 
 # Please replace the above comments with your names and ID numbers in the same format.
 import cv2

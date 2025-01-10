@@ -1,5 +1,5 @@
-# Student_Name1, Student_ID1
-# Student_Name2, Student_ID2
+# Omar_Ryyan, 322283755
+# Abdulrahman_Assi, 212371421
 
 # Please replace the above comments with your names and ID numbers in the same format.
 import cv2
@@ -72,9 +72,9 @@ def clean_Gaussian_noise_bilateral(im, radius, stdSpatial, stdIntensity):
 image_paths = ['balls.jpg', 'NoisyGrayImage.png', 'taj.jpg']
 
 for image_path in image_paths:
-    gray_image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)  # Load grayscale image directly
+    original_image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)  # Load grayscale image directly
 
-    if gray_image is None:
+    if original_image is None:
         print(f"Image file not found: {image_path}. Skipping.")
         continue
 
@@ -85,17 +85,20 @@ for image_path in image_paths:
         stdIntensity = 100
     else:  # Parameters for 'balls.jpg' and 'taj.jpg', works for both
         radius = 5
-        stdSpatial = 150
-        stdIntensity = 50
+        stdSpatial = 100
+        stdIntensity = 20
 
     # Apply the bilateral filter
-    filtered_gray_image = clean_Gaussian_noise_bilateral(gray_image, radius, stdSpatial, stdIntensity)
+    filtered_gray_image = clean_Gaussian_noise_bilateral(original_image, radius, stdSpatial, stdIntensity)
+
+    # Save the images into the directory
+    cv2.imwrite(f"BilateralFiltered_{image_path}", filtered_gray_image)
 
     # Display the original and filtered images
     plt.figure(figsize=(10, 5))
     plt.subplot(121)
     plt.title(f"Original Grayscale Image ({image_path})")
-    plt.imshow(gray_image, cmap='gray')
+    plt.imshow(original_image, cmap='gray')
     plt.axis("off")
 
     plt.subplot(122)
