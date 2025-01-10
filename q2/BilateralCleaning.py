@@ -1,3 +1,7 @@
+# Student_Name1, Student_ID1
+# Student_Name2, Student_ID2
+
+# Please replace the above comments with your names and ID numbers in the same format.
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
@@ -9,31 +13,24 @@ stdIntensity = 20
 
 NoisyGrayImage sol : 
 radius = 10
-stdSpatial = 10.0
-stdIntensity =150
+stdSpatial = 20
+stdIntensity = 100
 
 taj sol : 
-radius = 5 
-stdSpatial =  100
+radius = 5
+stdSpatial = 100
 stdIntensity = 20
- ## not sure that this is optimal tho 
-  # same paramters looks good for  balls . jpg what do u think 
+ ## not sure that this is optimal tho. TODO://these params are optimal i think, we will go with those
+  # same paramters looks good for  balls.jpg what do u think 
 '''''
 
+# Gaussian helper function
 def gaussian(x, sigma):
-    """Gaussian function."""
     return np.exp(-0.5 * (x / sigma) ** 2)
 
+# cleans the image using bilateral filtering
 def clean_Gaussian_noise_bilateral(im, radius, stdSpatial, stdIntensity):
-    """
-    Denoises an image using a bilateral filter.
 
-    :param im: 2D numpy array representing the grayscale image.
-    :param radius: Radius of the neighborhood window (integer).
-    :param stdSpatial: Standard deviation for spatial Gaussian.
-    :param stdIntensity: Standard deviation for intensity Gaussian.
-    :return: Denoised image as a 2D numpy array.
-    """
     im = im.astype(np.float64)  # Ensure working with float64 for accuracy
     rows, cols = im.shape
 
@@ -69,7 +66,7 @@ def clean_Gaussian_noise_bilateral(im, radius, stdSpatial, stdIntensity):
     # Apply weights to the image and sum up
     filtered_im = np.sum(weights * windows, axis=(2, 3))
 
-    return np.clip(filtered_im, 0, 255).astype(np.uint8)
+    return np.clip(filtered_im, 0, 255).astype(np.uint8) # Converting back to unit8
 
 
 # Process multiple images
@@ -85,12 +82,12 @@ for image_path in image_paths:
     # Define parameters based on the image
     if image_path == 'NoisyGrayImage.png':
         radius = 10
-        stdSpatial = 10.0
-        stdIntensity = 150
-    else:  # Parameters for 'balls.jpg' and 'taj.jpg'
+        stdSpatial = 20
+        stdIntensity = 100
+    else:  # Parameters for 'balls.jpg' and 'taj.jpg', works for both
         radius = 5
-        stdSpatial = 100
-        stdIntensity = 20
+        stdSpatial = 150
+        stdIntensity = 50
 
     # Apply the bilateral filter
     filtered_gray_image = clean_Gaussian_noise_bilateral(gray_image, radius, stdSpatial, stdIntensity)

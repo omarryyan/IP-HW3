@@ -1,3 +1,7 @@
+# Student_Name1, Student_ID1
+# Student_Name2, Student_ID2
+
+# Please replace the above comments with your names and ID numbers in the same format.
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
