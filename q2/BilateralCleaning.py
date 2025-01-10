@@ -65,7 +65,6 @@ def clean_Gaussian_noise_bilateral(im, radius, stdSpatial, stdIntensity):
 
     # Apply weights to the image and sum up
     filtered_im = np.sum(weights * windows, axis=(2, 3))
-
     return np.clip(filtered_im, 0, 255).astype(np.uint8) # Converting back to unit8
 
 
