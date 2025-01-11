@@ -5,22 +5,63 @@
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
+from PIL.ImageOps import grayscale
 
 # Load the image
 image_path = "1.jpg"
-image = cv2.imread(image_path)
+image = cv2.imread(image_path,cv2.IMREAD_GRAYSCALE)
 if image is None:
     raise FileNotFoundError(f"Image file '{image_path}' not found.")
 
 # Load the target image for comparison
-target_image_path = "image_1.jpg"
-target_image = cv2.imread(target_image_path)
+target_image_path = "image_4.jpg"
+target_image = cv2.imread(target_image_path,cv2.IMREAD_GRAYSCALE)
 if target_image is None:
     raise FileNotFoundError(f"Target image file '{target_image_path}' not found.")
 
 # Convert images to RGB (OpenCV loads images in BGR format by default)
 image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 target_image_rgb = cv2.cvtColor(target_image, cv2.COLOR_BGR2RGB)
+
+def y_axis_average_filter(image, radius):
+
+    # Pad the image along the Y-axis to handle edge cases
+    padded_image = np.pad(image, ((radius, radius), (0, 0)), mode='constant', constant_values=0)
+
+    # Create an empty image for the result
+    filtered_image = np.zeros_like(image, dtype=np.float32)
+
+    # Apply the Y-axis average filter
+    for y in range(image.shape[0]):
+        # Sum over the window centered at the current pixel along the Y-axis
+        filtered_image[y, :] = np.mean(padded_image[y:y + 2 * radius + 1, :], axis=0)
+
+    # Clip the result to the valid range [0, 255] and convert to uint8
+    filtered_image = np.clip(filtered_image, 0, 255).astype(np.uint8)
+    return filtered_image
+
+
+def vertical_edge_detection_laplacian(image, ksize=3):
+    """
+    Apply a Laplacian filter for vertical edge detection.
+
+    Parameters:
+        image (numpy.ndarray): Input grayscale image.
+        ksize (int): Kernel size for the Laplacian filter. Must be an odd number (1, 3, 5, ...).
+
+    Returns:
+        numpy.ndarray: Image with vertical edges detected.
+    """
+    if len(image.shape) != 2:
+        raise ValueError("Input image must be a 2D grayscale image.")
+
+    # Apply the Laplacian filter
+    laplacian = cv2.Laplacian(image, cv2.CV_64F, ksize=ksize)
+
+    # Convert the result to an absolute scale
+    abs_laplacian = cv2.convertScaleAbs(laplacian)
+
+    return abs_laplacian
 
 # Function to display images
 def display_images(titles, images):
@@ -70,20 +111,46 @@ def apply_min_max_filter(image):
     normalized_image = (image - min_val) / (max_val - min_val) * 255
     return np.uint8(normalized_image)
 
+
+def swap_image_halves(image):
+    """
+    Swap the upper and lower halves of an image.
+
+    Parameters:
+        image (numpy.ndarray): Input image.
+
+    Returns:
+        numpy.ndarray: Image with upper and lower halves swapped.
+    """
+    # Get the height and width of the image
+    height, width = image.shape[:2]
+
+    # Ensure the height is divisible by 2
+    if height % 2 != 0:
+        raise ValueError("Image height must be divisible by 2 for swapping halves.")
+
+    # Split the image into two halves
+    upper_half = image[:height // 2, :]
+    lower_half = image[height // 2:, :]
+
+    # Swap the halves
+    swapped_image = np.vstack((lower_half, upper_half))
+    return swapped_image
+
 # 1. Original Image
 titles = ["Original"]
 images = [image_rgb]
 comparisons = []
 
 # 2. Grayscale Conversion
-gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-min_max_gray = apply_min_max_filter(gray)  # Apply Min-Max normalization to grayscale
+min_max_gray = apply_min_max_filter(image)  # Apply Min-Max normalization to grayscale
 comparisons.append(("Min-Max Grayscale", compare_images(min_max_gray, target_image)))
 titles.append("Min-Max Grayscale")
 images.append(min_max_gray)
 
 # 3. Gaussian Blur
 gaussian_blur = cv2.GaussianBlur(image_rgb, (15, 15), 0)
+
 min_max_gaussian_blur = apply_min_max_filter(gaussian_blur)  # Apply Min-Max normalization to Gaussian blur
 comparisons.append(("Min-Max Gaussian Blur", compare_images(min_max_gaussian_blur, target_image_rgb)))
 titles.append("Min-Max Gaussian Blur")
@@ -97,15 +164,15 @@ titles.append("Min-Max Median Blur")
 images.append(min_max_median_blur)
 
 # 5. Edge Detection (Canny)
-canny_edges = cv2.Canny(gray, 100, 200)
+canny_edges = cv2.Canny(image, 100, 200)
 min_max_canny = apply_min_max_filter(canny_edges)  # Apply Min-Max normalization to Canny edge detection
 comparisons.append(("Min-Max Canny Edge Detection", compare_images(min_max_canny, target_image)))
 titles.append("Min-Max Canny Edge Detection")
 images.append(min_max_canny)
 
 # 6. Sobel Filter (X and Y)
-sobel_x = cv2.Sobel(gray, cv2.CV_64F, 1, 0, ksize=3)
-sobel_y = cv2.Sobel(gray, cv2.CV_64F, 0, 1, ksize=3)
+sobel_x = cv2.Sobel(image, cv2.CV_64F, 1, 0, ksize=3)
+sobel_y = cv2.Sobel(image, cv2.CV_64F, 0, 1, ksize=3)
 sobel_x = cv2.convertScaleAbs(sobel_x)
 sobel_y = cv2.convertScaleAbs(sobel_y)
 sobel_combined = cv2.addWeighted(sobel_x, 0.5, sobel_y, 0.5, 0)
@@ -115,7 +182,7 @@ titles.append("Min-Max Sobel Combined")
 images.append(min_max_sobel_combined)
 
 # 7. Laplacian Filter
-laplacian = cv2.Laplacian(gray, cv2.CV_64F)
+laplacian = cv2.Laplacian(image, cv2.CV_64F)
 laplacian = cv2.convertScaleAbs(laplacian)
 min_max_laplacian = apply_min_max_filter(laplacian)  # Apply Min-Max normalization to Laplacian
 comparisons.append(("Min-Max Laplacian", compare_images(min_max_laplacian, target_image)))
@@ -130,7 +197,7 @@ titles.append("Min-Max Bilateral Filter")
 images.append(min_max_bilateral)
 
 # 9. Adaptive Thresholding
-adaptive_thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+adaptive_thresh = cv2.adaptiveThreshold(image, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
                                         cv2.THRESH_BINARY, 11, 2)
 min_max_adaptive_thresh = apply_min_max_filter(adaptive_thresh)  # Apply Min-Max normalization to Adaptive thresholding
 comparisons.append(("Min-Max Adaptive Thresholding", compare_images(min_max_adaptive_thresh, target_image)))
@@ -138,7 +205,7 @@ titles.append("Min-Max Adaptive Thresholding")
 images.append(min_max_adaptive_thresh)
 
 # 10. Histogram Equalization
-equalized = cv2.equalizeHist(gray)
+equalized = cv2.equalizeHist(image)
 min_max_equalized = apply_min_max_filter(equalized)  # Apply Min-Max normalization to Histogram equalization
 comparisons.append(("Min-Max Histogram Equalization", compare_images(min_max_equalized, target_image)))
 titles.append("Min-Max Histogram Equalization")
@@ -169,6 +236,7 @@ def apply_row_mean_normalization(image):
 
 # Apply row-wise mean normalization to the RGB image (a copy to keep original intact)
 normalized_image_rgb = apply_row_mean_normalization(image_rgb.copy())
+cv2.imwrite("normalized_image_rgb.jpg", normalized_image_rgb)
 
 # Display original image and normalized image
 titles.append("Row-wise Mean Normalized Image")
@@ -176,6 +244,12 @@ images.append(normalized_image_rgb)
 
 # Display all the results
 display_images(titles, images)
+
+# Swap the upper and lower halves
+swapped_image = swap_image_halves(image)
+
+cv2.imshow("swap image",swapped_image)
+cv2.waitKey(0)
 
 # Print comparison results
 print("Filter Comparison Results:")
